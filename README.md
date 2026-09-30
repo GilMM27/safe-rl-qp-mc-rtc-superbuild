@@ -228,6 +228,71 @@ LogPolicy: threaded
 The controller is intentionally limited to the seven base Kinova joints. It is a
 smoke-test controller, not a manipulation controller.
 
+### Installing the tagged human MuJoCo asset
+
+The optional `WITH_HUMAN_MOCAP` extension installs the Apache-2.0
+MS-Human-700 locomotion model from a pinned MuJoCo Menagerie revision. Its
+visible mesh geometry is organized into named body-part groups, and the
+installed `human_mocap_parts.yaml` file provides the semantic-label metadata
+used by the proximity tracker:
+
+```bash
+cmake --preset relwithdebinfo \
+  -DWITH_ROS_SUPPORT=ON \
+  -DROS_IS_ROS2=ON \
+  -DWITH_Kinova=ON \
+  -DWITH_HUMAN_MOCAP=ON
+cmake --build --preset relwithdebinfo
+```
+
+After sourcing the installed environment, add the human as an object in
+`~/.config/mc_rtc/mc_mujoco/mc_mujoco.yaml`:
+
+```yaml
+objects:
+  human:
+    module: human_mocap
+    init_pos:
+      translation: [1.0, 0.0, 0.0]
+      rotation: [0, 0, 0]
+```
+
+The `HumanMocapTracker` library is installed with this option. It resolves
+configured MuJoCo geometry IDs into semantic groups and uses MuJoCo's geometry
+distance query to return the closest human part, distance, and closest points.
+The library is deliberately independent of `KinovaHoldController`; a controller
+or `mc_mujoco` integration can construct it after loading the model and expose
+the result through its datastore.
+
+For prerecorded motion, provide a CSV with one row per frame:
+`time,qpos[0],qpos[1],...`. The installed tracker includes
+`QposTrajectory::loadCsv`, which validates monotonic timestamps and qpos width,
+and `sample`, which linearly interpolates at the simulation time with optional
+looping. The resulting vector is intended to be copied into the human model's
+MuJoCo `qpos` before `mj_forward`; this keeps playback deterministic and
+independent of rendering.
+
+The first tested recording candidate is **CMU subject 14, trial 07
+(`14_07`)**, described as “jump up to grab, reach for, tiptoe.” It consists of
+the subject skeleton `14.asf` and motion file `14_07.amc`. Download these files
+without committing them to the repository:
+
+```bash
+./tools/fetch_cmu_mocap.sh
+```
+
+The downloaded ASF/AMC data still needs retargeting from the CMU skeleton to
+the MS-Human-700 joint layout before it can become a MuJoCo `qpos` CSV. The
+source listing is available at:
+<http://mocap.cs.cmu.edu/search.php?subjectnumber=14&motion=%25%25%25&maincat=%25&subcat=%25&subtext=yes>.
+Review the CMU database terms before redistributing downloaded recordings; this
+project only provides the acquisition helper and does not bundle the data.
+
+The installed MS-Human-700 model is the tagged geometry foundation for
+prerecorded playback. A motion source must still provide compatible MuJoCo
+joint positions; this repository does not silently convert arbitrary BVH/FBX
+files or claim that a static model is a mocap trajectory.
+
 ## Adding your own RL-QP controller
 
 ### Fork the template
