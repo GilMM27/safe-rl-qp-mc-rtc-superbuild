@@ -8,13 +8,6 @@ foreach(extension_dir ${extension_dirs})
   endif()
 endforeach()
 
-if(WITH_HUMAN_MOCAP)
-  add_subdirectory(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../human_mocap_tracker
-    ${CMAKE_CURRENT_BINARY_DIR}/human_mocap_tracker
-  )
-endif()
-
 add_subdirectory(
   ${CMAKE_CURRENT_SOURCE_DIR}/../my_first_controller
   ${CMAKE_CURRENT_BINARY_DIR}/my_first_controller
