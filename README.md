@@ -175,6 +175,59 @@ mc_rviz
 
 Congrats — you should now see H1 walking! If you have a gamepad plugged into your PC (such as a DS4 controller), you can control the robot with the joystick.
 
+### Running the Kinova Gen3 in MuJoCo
+
+Kinova support includes the ROS 2/Kortex interfaces by default only when enabled. The
+superbuild can also install the Kinova Gen3 MuJoCo model from the
+[MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie). Enable ROS 2
+and Kinova support during configuration:
+
+```bash
+cmake --preset relwithdebinfo \
+  -DWITH_ROS_SUPPORT=ON \
+  -DROS_IS_ROS2=ON \
+  -DWITH_Kinova=ON
+cmake --build --preset relwithdebinfo
+```
+
+The build installs the Kinova Gen3 model as `kinova` for `mc_mujoco`. Select a controller that is
+compatible with a 7-DoF arm and use a 1 ms timestep:
+
+```yaml
+MainRobot: Kinova
+Enabled: YourController
+Timestep: 0.001
+LogPolicy: threaded
+```
+
+After sourcing the installed environment, start `mc_mujoco` from the directory
+containing the controller's assets:
+
+```bash
+source ~/workspace/install/setup_mc_rtc.sh
+cd ~/workspace/src/<your-controller-directory>
+mc_mujoco --sync
+```
+
+The Kinova module and MuJoCo model are separate pieces: `WITH_Kinova` builds the
+`mc_rtc` robot model and Kortex support, while the extension downloads and installs
+the Menagerie MJCF and its meshes. This provides simulation; `mc_kortex` remains the
+separate interface for a physical Kinova Gen3.
+
+For a stationary first test, this repository also installs the
+`KinovaHoldController` plugin. It holds the Kinova Gen3 at its default posture and
+does not command a trajectory:
+
+```yaml
+MainRobot: Kinova
+Enabled: KinovaHoldController
+Timestep: 0.001
+LogPolicy: threaded
+```
+
+The controller is intentionally limited to the seven base Kinova joints. It is a
+smoke-test controller, not a manipulation controller.
+
 ## Adding your own RL-QP controller
 
 ### Fork the template
