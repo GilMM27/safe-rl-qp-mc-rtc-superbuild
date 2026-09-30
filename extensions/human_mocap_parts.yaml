@@ -1,0 +1,33 @@
+# Semantic labels for the visible MS-Human-700 locomotion model.
+# The tracker resolves these labels to MuJoCo geom names at runtime.
+parts:
+  pelvis:
+    geom_prefixes: ["l_pelvis", "r_pelvis"]
+  torso:
+    geom_prefixes: ["torso", "spine", "chest"]
+  head:
+    geom_prefixes: ["head", "skull"]
+  left_upper_arm:
+    geom_prefixes: ["humerus", "humerus_skin_l"]
+  left_forearm:
+    geom_prefixes: ["Elbow_Radius_l", "Elbow_Ulna_l", "radius_l", "ulna_l"]
+  left_hand:
+    geom_prefixes: ["hand_", "hand_"]
+  right_upper_arm:
+    geom_prefixes: ["humerus_mirror", "humerus_skin_r"]
+  right_forearm:
+    geom_prefixes: ["Elbow_Radius_r", "Elbow_Ulna_r", "radius_mirror", "ulna_mirror"]
+  right_hand:
+    geom_prefixes: ["hand_"]
+  left_thigh:
+    geom_prefixes: ["l_femur", "femur_skin_l"]
+  left_shin:
+    geom_prefixes: ["l_tibia", "tibia_skin_l"]
+  left_foot:
+    geom_prefixes: ["l_foot", "l_bofoot"]
+  right_thigh:
+    geom_prefixes: ["r_femur", "femur_skin_r"]
+  right_shin:
+    geom_prefixes: ["r_tibia", "tibia_skin_r"]
+  right_foot:
+    geom_prefixes: ["r_foot", "r_bofoot"]
