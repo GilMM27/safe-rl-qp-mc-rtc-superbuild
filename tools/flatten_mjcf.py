@@ -78,6 +78,12 @@ def main():
     wrap_default = root.find("./default/default[@class='wrap']/geom")
     if wrap_default is not None:
         wrap_default.set("rgba", "0.5 0.5 0.9 0")
+    for geom in root.iter("geom"):
+        if geom.attrib.get("class") == "bone" and geom.attrib.get("type") == "mesh":
+            # mc_mujoco merges object defaults globally; make the visible
+            # anatomical meshes independent of whichever geom group wins.
+            geom.set("group", "0")
+            geom.set("rgba", "0.72 0.48 0.28 1")
     # The object is driven by qpos playback rather than MuJoCo actuators.
     # Removing cross-referenced dynamic sections also avoids mc_mujoco's
     # repeated prefixing of tendons when it merges later robot models.
