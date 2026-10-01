@@ -15,7 +15,7 @@ def expand_children(parent, source_file, source_root, install_root):
             expanded = list(included_root)
             matching_container = next(
                 (candidate for candidate in expanded if candidate.tag == parent.tag), None
-            )
+            ) if parent.tag == "mujoco" else None
             if matching_container is not None:
                 expanded = list(matching_container)
                 for included_child in expanded:
