@@ -13,10 +13,32 @@ def expand_children(parent, source_file, source_root, install_root):
             index = list(parent).index(child)
             parent.remove(child)
             expanded = list(included_root)
-            for included_child in expanded:
-                expand_tree(included_child, include_file, source_root, install_root)
-            for offset, included_child in enumerate(expanded):
-                parent.insert(index + offset, included_child)
+            matching_container = next(
+                (candidate for candidate in expanded if candidate.tag == parent.tag), None
+            )
+            if matching_container is not None:
+                expanded = list(matching_container)
+                for included_child in expanded:
+                    expand_tree(included_child, include_file, source_root, install_root)
+                for offset, included_child in enumerate(expanded):
+                    parent.insert(index + offset, included_child)
+            elif parent.tag == "mujoco":
+                for included_container in expanded:
+                    target = parent.find(included_container.tag)
+                    if target is None:
+                        expand_tree(included_container, include_file, source_root, install_root)
+                        parent.insert(index, included_container)
+                        index += 1
+                    else:
+                        children = list(included_container)
+                        for included_child in children:
+                            expand_tree(included_child, include_file, source_root, install_root)
+                            target.append(included_child)
+            else:
+                for included_child in expanded:
+                    expand_tree(included_child, include_file, source_root, install_root)
+                for offset, included_child in enumerate(expanded):
+                    parent.insert(index + offset, included_child)
         else:
             expand_tree(child, source_file, source_root, install_root)
 
