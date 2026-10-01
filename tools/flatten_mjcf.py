@@ -66,6 +66,13 @@ def main():
         # mc_mujoco merges object defaults with robot defaults. Unbounded robot
         # joints must not inherit the human model's limited=true default.
         default_joint.set("limited", "false")
+    # The object is driven by qpos playback rather than MuJoCo actuators.
+    # Removing cross-referenced dynamic sections also avoids mc_mujoco's
+    # repeated prefixing of tendons when it merges later robot models.
+    for section in ("contact", "equality", "tendon", "actuator", "sensor", "keyframe"):
+        node = root.find(section)
+        if node is not None:
+            root.remove(node)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     ET.ElementTree(root).write(args.output, encoding="utf-8", xml_declaration=True)
 
