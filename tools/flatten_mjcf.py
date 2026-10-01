@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import argparse
+import pathlib
+import xml.etree.ElementTree as ET
+
+
+def expand_children(parent, source_file, source_root, install_root):
+    for child in list(parent):
+        if child.tag == "include":
+            include_file = (source_file.parent / child.attrib["file"]).resolve()
+            included_root = ET.parse(include_file).getroot()
+            index = list(parent).index(child)
+            parent.remove(child)
+            expanded = list(included_root)
+            for included_child in expanded:
+                expand_tree(included_child, include_file, source_root, install_root)
+            for offset, included_child in enumerate(expanded):
+                parent.insert(index + offset, included_child)
+        else:
+            expand_tree(child, source_file, source_root, install_root)
+
+
+def expand_tree(node, source_file, source_root, install_root):
+    if node.tag in {"mesh", "texture", "skin"} and "file" in node.attrib:
+        source_asset = (source_file.parent / node.attrib["file"]).resolve()
+        relative_asset = source_asset.relative_to(source_root)
+        node.attrib["file"] = str(install_root / relative_asset)
+    expand_children(node, source_file, source_root, install_root)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", type=pathlib.Path, required=True)
+    parser.add_argument("--output", type=pathlib.Path, required=True)
+    parser.add_argument("--source-root", type=pathlib.Path, required=True)
+    parser.add_argument("--install-root", type=pathlib.Path, required=True)
+    args = parser.parse_args()
+
+    root = ET.parse(args.input).getroot()
+    expand_tree(root, args.input.resolve(), args.source_root.resolve(), args.install_root.resolve())
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    ET.ElementTree(root).write(args.output, encoding="utf-8", xml_declaration=True)
+
+
+if __name__ == "__main__":
+    main()
