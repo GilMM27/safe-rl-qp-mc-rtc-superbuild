@@ -61,6 +61,11 @@ def main():
 
     root = ET.parse(args.input).getroot()
     expand_tree(root, args.input.resolve(), args.source_root.resolve(), args.install_root.resolve())
+    default_joint = root.find("./default/joint")
+    if default_joint is not None:
+        # mc_mujoco merges object defaults with robot defaults. Unbounded robot
+        # joints must not inherit the human model's limited=true default.
+        default_joint.set("limited", "false")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     ET.ElementTree(root).write(args.output, encoding="utf-8", xml_declaration=True)
 
