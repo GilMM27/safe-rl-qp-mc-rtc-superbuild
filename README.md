@@ -232,9 +232,14 @@ smoke-test controller, not a manipulation controller.
 
 The optional `WITH_HUMAN_MOCAP` extension installs the Apache-2.0
 MS-Human-700 locomotion model from a pinned MuJoCo Menagerie revision. Its
-visible mesh geometry is organized into named body-part groups, and the
+anatomical mesh geometry is organized into named body-part groups, and the
 installed `human_mocap_parts.yaml` file provides the semantic-label metadata
-used by the proximity tracker:
+used by the proximity tracker. The source also contains primitive cylinders
+for muscle wrapping and capsules for skin approximation. The generated object
+hides those analytical primitives by default so the rendered model shows the
+actual STL/OBJ anatomical meshes instead of a cylinder-only view. This is an
+anatomical mesh/skeleton, not a clothed surface avatar; a separate surface-mesh
+asset is still required for that appearance.
 
 ```bash
 cmake --preset relwithdebinfo \

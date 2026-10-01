@@ -66,6 +66,18 @@ def main():
         # mc_mujoco merges object defaults with robot defaults. Unbounded robot
         # joints must not inherit the human model's limited=true default.
         default_joint.set("limited", "false")
+    # The source model uses primitive capsules/cylinders for muscle and skin
+    # wrapping. Keep those geoms available for model semantics, but do not let
+    # them obscure the anatomical mesh when the object is rendered in MuJoCo.
+    bone_default = root.find("./default/default[@class='bone']/geom")
+    if bone_default is not None:
+        bone_default.set("rgba", "0.72 0.48 0.28 1")
+    skin_default = root.find("./default/default[@class='skin']/geom")
+    if skin_default is not None:
+        skin_default.set("rgba", "0.8 0.7 0.5 0")
+    wrap_default = root.find("./default/default[@class='wrap']/geom")
+    if wrap_default is not None:
+        wrap_default.set("rgba", "0.5 0.5 0.9 0")
     # The object is driven by qpos playback rather than MuJoCo actuators.
     # Removing cross-referenced dynamic sections also avoids mc_mujoco's
     # repeated prefixing of tendons when it merges later robot models.
