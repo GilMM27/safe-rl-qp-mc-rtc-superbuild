@@ -46,7 +46,7 @@ def main():
     fps = args.fps or float(a['mocap_framerate'])
     if not np.isfinite(fps) or fps <= 0: raise ValueError('FPS must be positive')
     gender = str(a['gender'].item()); gender = gender.removeprefix("b'").removesuffix("'")
-    model = smplx.SMPLH(args.model, gender=gender, ext=Path(args.model).suffix.lstrip('.'),
+    model = smplx.SMPLH(args.model, gender=gender, ext=(Path(args.model).suffix.lstrip('.') if Path(args.model).is_file() else 'pkl'),
                         use_pca=False, flat_hand_mean=True, num_betas=min(16, len(a['betas'])))
     # Only the 52 kinematic joints are required; disable optional landmark vertices.
     model.vertex_joint_selector.extra_joints_idxs = torch.empty(0, dtype=torch.long)
