@@ -1,5 +1,6 @@
 #pragma once
-// Linux-only, opt-in local bridge. All protocol scalars use native little-endian doubles.
+// Linux-only, opt-in local bridge. Simulation time and geom transforms use doubles;
+// frame payloads use float32 because MuJoCo stores mesh assets as floats.
 #include <mujoco/mujoco.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -17,8 +18,10 @@ class SmplhBridge
   int fd_ = -1;
   bool checked_ = false;
   int mesh_ = -1;
+  uint32_t frame_ = UINT32_MAX;
+  bool mesh_dirty_ = false;
   std::vector<int> joints_;
-  std::vector<double> response_;
+  std::vector<float> response_;
   void transfer(void * p, size_t bytes, bool sendData)
   {
     auto * c = static_cast<char *>(p);
@@ -102,12 +105,15 @@ public:
       std::copy(d->geom_xmat+9*i,d->geom_xmat+9*i+9,transforms.data()+12*i+3);
     }
     transfer(transforms.data(),transforms.size()*sizeof(double),true);
-    transfer(response_.data(),response_.size()*sizeof(double),false);
+    uint32_t nextFrame;
+    transfer(&nextFrame,sizeof(nextFrame),false);
+    if(nextFrame == frame_) return;
+    transfer(response_.data(),response_.size()*sizeof(float),false);
     size_t cursor=0;
     for(size_t i=0;i<joints_.size();++i)
     {
       int j=joints_[i], nq=i==0 ? 7 : 4, nv=i==0 ? 6 : 3;
-      std::copy(response_.data()+cursor,response_.data()+cursor+nq,d->qpos+m->jnt_qposadr[j]);
+      for(int k=0;k<nq;++k) d->qpos[m->jnt_qposadr[j]+k]=static_cast<double>(response_[cursor+k]);
       mju_zero(d->qvel+m->jnt_dofadr[j],nv);
       cursor+=nq;
     }
@@ -115,13 +121,19 @@ public:
     if(m->mesh_normalnum[mesh_] != n) throw std::runtime_error("Surface needs one normal per vertex");
     for(int i=0;i<3*n;++i)
     {
-      m->mesh_vert[3*va+i]=static_cast<float>(response_[211+i]);
-      m->mesh_normal[3*na+i]=static_cast<float>(response_[211+3*n+i]);
+      m->mesh_vert[3*va+i]=response_[211+i];
+      m->mesh_normal[3*na+i]=response_[211+3*n+i];
     }
     mj_forward(m,d);
+    frame_=nextFrame;
+    mesh_dirty_=true;
   }
   void upload(const mjModel * m, mjrContext * context)
   {
-    if(fd_ >= 0) mjr_uploadMesh(m,context,mesh_);
+    if(fd_ >= 0 && mesh_dirty_)
+    {
+      mjr_uploadMesh(m,context,mesh_);
+      mesh_dirty_=false;
+    }
   }
 };

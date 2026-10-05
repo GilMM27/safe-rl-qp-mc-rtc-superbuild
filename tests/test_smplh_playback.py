@@ -115,7 +115,7 @@ class PipelineTests(unittest.TestCase):
         socket_path=self.cache/'worker.sock'; log=self.cache/'results.jsonl'
         proc=subprocess.Popen([sys.executable,'-m','smplh_playback.serve',
             '--cache',str(self.cache),'--socket',str(socket_path),
-            '--robot-prefix','Kinova_','--log',str(log)],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            '--robot-prefix','Kinova_','--log',str(log),'--log-every','1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         try:
             import time
             for _ in range(100):
@@ -128,22 +128,29 @@ class PipelineTests(unittest.TestCase):
                 counts=sock.recv(8); ngeom,nvert=struct.unpack('=II',counts)
                 self.assertEqual(ngeom,model.ngeom)
                 self.assertEqual(nvert,len(self.playback.vertices[0]))
+                previous_frame=None; previous_payload=None
                 def exchange(t):
+                    nonlocal previous_frame, previous_payload
                     data.time=t;mujoco.mj_forward(model,data)
                     transforms=np.concatenate([data.geom_xpos,data.geom_xmat.reshape(-1,9)],axis=1).astype('float64')
                     sock.sendall(struct.pack('=d',t)+transforms.tobytes())
-                    wanted=(211+6*nvert)*8; chunks=[]
+                    frame=struct.unpack('=I',sock.recv(4))[0]
+                    if frame == previous_frame: return previous_payload
+                    wanted=(211+6*nvert)*4; chunks=[]
                     while wanted:
                         part=sock.recv(wanted)
                         if not part: raise EOFError('Worker disconnected')
                         chunks.append(part);wanted-=len(part)
-                    return np.frombuffer(b''.join(chunks),dtype=np.float64)
-                first=exchange(0); next_frame=exchange(.1); reset=exchange(0)
+                    previous_frame=frame
+                    previous_payload=np.frombuffer(b''.join(chunks),dtype=np.float32)
+                    return previous_payload
+                first=exchange(0); same_frame=exchange(.01); next_frame=exchange(.1); reset=exchange(0)
+                np.testing.assert_array_equal(first,same_frame)
                 np.testing.assert_allclose(first,reset)
                 self.assertFalse(np.allclose(first[:3],next_frame[:3]))
                 np.testing.assert_allclose(first[211:211+3*nvert].reshape(-1,3),self.playback.vertices[0])
             records=[json.loads(line) for line in log.read_text().splitlines()]
-            self.assertEqual([r['frame'] for r in records],[0,1,0])
+            self.assertEqual([r['frame'] for r in records],[0,0,1,0])
             for record in records:
                 self.assertEqual(len(record['regions']),14)
                 self.assertGreater(record['regions']['head']['distance'],0)

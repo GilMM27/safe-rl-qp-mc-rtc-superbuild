@@ -104,6 +104,13 @@ returns the free-root pose and all 51 ball-joint poses to MuJoCo. The human is
 kinematic: velocities are reset to zero and its display/debug geoms have no
 contact bits.
 
+Robot-to-surface distances are updated every physics step. The articulated
+pose, mesh vertices, and normals are transferred only when the AMASS frame
+changes; normals are computed once for that frame. This avoids repeatedly
+transferring the full mesh at simulation rates above the mocap FPS. Distance
+JSONL is sampled every ten physics steps by default; set `--log-every 1` to log
+every step.
+
 Regions are assigned by the largest average SMPL-H linear-blend-skinning
 influence over each triangle. The defaults provide head, torso, upper arm,
 forearm, hand, thigh, lower leg, and foot on both sides. `regions.npz` stores
