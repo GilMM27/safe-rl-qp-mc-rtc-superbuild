@@ -74,10 +74,14 @@ def main():
     np.save(output / 'joints.npy', np.repeat(centers[None], args.frames, axis=0))
     np.savez(output / 'regions.npz', **region_faces)
     (output / 'metadata.json').write_text(json.dumps({
-        'fps': args.fps, 'frames': args.frames, 'regions': list(region_faces), 'source': 'synthetic smoke fixture',
+        'cache_format': 1, 'fps': args.fps, 'frames': args.frames, 'vertices': len(vertices[0]),
+        'faces': len(faces), 'region_faces': {name: len(ids) for name, ids in region_faces.items()},
+        'regions': list(region_faces), 'source': 'synthetic smoke fixture',
         'joint_names': ['smplh_root'] + [f'smplh_joint_{index}' for index in range(1, 52)],
     }, indent=2))
     write_human_xml(output, vertices, faces)
+    from .native_cache import write_native_cache
+    write_native_cache(output)
     print(f'Prepared synthetic smoke fixture in {output}')
 
 

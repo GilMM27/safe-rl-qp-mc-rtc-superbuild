@@ -16,11 +16,27 @@ class Playback:
         self.loop = loop
         if len(self.vertices) != len(self.qpos) or not len(self.qpos):
             raise ValueError('Invalid cache frame count')
+        if self.qpos.ndim != 2 or self.qpos.shape[1] != 211:
+            raise ValueError('Expected one free-root and 51 ball-joint poses per frame')
+        if self.vertices.ndim != 3 or self.vertices.shape[0] != len(self.qpos) or self.vertices.shape[2] != 3:
+            raise ValueError('Expected vertices with shape (frames, vertices, 3)')
+        if self.faces.ndim != 2 or self.faces.shape[1] != 3:
+            raise ValueError('Expected triangular faces with shape (faces, 3)')
+        if self.meta.get('cache_format', 1) != 1:
+            raise ValueError(f"Unsupported SMPL-H cache format {self.meta['cache_format']}")
+        if self.meta.get('frames', len(self.qpos)) != len(self.qpos):
+            raise ValueError('Cache metadata frame count mismatch')
+        if self.meta.get('vertices', self.vertices.shape[1]) != self.vertices.shape[1]:
+            raise ValueError('Cache metadata vertex count mismatch')
+        if self.meta.get('faces', len(self.faces)) != len(self.faces):
+            raise ValueError('Cache metadata face count mismatch')
         if not np.isfinite(self.meta['fps']) or self.meta['fps'] <= 0:
             raise ValueError('Invalid cache FPS')
         for ids in self.regions.values():
             if not len(ids) or np.any(ids < 0) or np.any(ids >= len(self.faces)):
                 raise ValueError('Invalid or empty region')
+        if self.faces.size and (self.faces.min() < 0 or self.faces.max() >= self.vertices.shape[1]):
+            raise ValueError('Face vertex index is outside the cached surface')
 
     def frame(self, time):
         if not np.isfinite(time) or time < 0: raise ValueError('Invalid simulation time')

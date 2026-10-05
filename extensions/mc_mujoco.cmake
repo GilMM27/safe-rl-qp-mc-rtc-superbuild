@@ -21,11 +21,11 @@ endif()
 
 AptInstall(libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libglew-dev)
 
-option(WITH_SMPLH_PLAYBACK "Enable independent SMPL-H surface playback bridge (Linux)" OFF)
+option(WITH_SMPLH_PLAYBACK "Enable native SMPL-H cache playback in mc_mujoco (Linux)" OFF)
 set(SMPLH_PATCH_ARGS)
 if(WITH_SMPLH_PLAYBACK)
   if(NOT UNIX OR APPLE)
-    message(FATAL_ERROR "The SMPL-H bridge currently requires Linux Unix-domain sockets")
+    message(FATAL_ERROR "The native SMPL-H bridge currently requires Linux")
   endif()
   set(SMPLH_PATCH_ARGS PATCH_COMMAND
     "${CMAKE_COMMAND}"

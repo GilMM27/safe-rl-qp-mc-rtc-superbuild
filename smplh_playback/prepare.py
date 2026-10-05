@@ -80,7 +80,9 @@ def main():
     np.save(out/'faces.npy',model.faces)
     np.save(out/'qpos.npy',qpos); np.save(out/'joints.npy',joints)
     np.savez(out/'regions.npz',**regions)
-    metadata = {'fps':fps,'frames':n,'regions':list(regions),'source':Path(args.amass).name,
+    metadata = {'cache_format':1,'fps':fps,'frames':n,'vertices':nv,'faces':len(model.faces),
+                'region_faces':{name:len(ids) for name,ids in regions.items()},
+                'regions':list(regions),'source':Path(args.amass).name,
                 'joint_names':['smplh_root']+[f'smplh_joint_{i}' for i in range(1,52)]}
     (out/'metadata.json').write_text(json.dumps(metadata,indent=2))
     # Full surface is visual-only; simplified skeleton geoms never participate in distance queries.
@@ -106,6 +108,8 @@ def main():
         bodies.append(body)
     ET.ElementTree(root).write(out/'human.xml')
     (out/'smplh.yaml').write_text('xmlModelPath: '+json.dumps(str((out/'human.xml').resolve()))+'\n')
+    from .native_cache import write_native_cache
+    write_native_cache(out)
     print(f'Prepared {n} frames at {fps} FPS in {out}')
 
 if __name__ == '__main__': main()
