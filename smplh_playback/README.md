@@ -78,11 +78,15 @@ export SMPLH_SOCKET=/tmp/smplh-mujoco.sock
 export SMPLH_SCENE=/tmp/kinova-smplh-scene.mjb
 ~/.venvs/smplh-playback/bin/python -m smplh_playback.serve \
   --cache /tmp/amass-cache --socket "$SMPLH_SOCKET" \
-  --robot-prefix Kinova_ --robot-group 2 --loop \
+  --robot-prefix kinova_ --robot-group 2 --loop \
   --log /tmp/kinova-smplh-distances.jsonl
 
 mc_mujoco --sync
 ```
+
+`kinova_smoke_mc_mujoco.yaml` and `kinova_smoke_mc_rtc.yaml` are minimal
+Kinova settings for an isolated smoke run. They are provided so an existing
+mc_mujoco object configuration need not be replaced.
 
 `SMPLH_SCENE` must be a writable, local `.mjb` filename. The C++ bridge saves
 the compiled combined scene there at startup so the Python binding sees the

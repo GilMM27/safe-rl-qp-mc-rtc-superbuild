@@ -56,7 +56,10 @@ def main():
                 for corner in range(3): np.add.at(normals,playback.faces[:,corner],fn)
                 norms=np.linalg.norm(normals,axis=1); normals/=np.maximum(norms[:,None],1e-15)
                 values=np.concatenate([playback.qpos[index],v.ravel(),normals.ravel()])
-                conn.sendall(values.astype('float64').tobytes())
+                try:
+                    conn.sendall(values.astype('float64').tobytes())
+                except (BrokenPipeError, ConnectionResetError):
+                    break
     finally:
         server.close()
         if path.exists(): path.unlink()
