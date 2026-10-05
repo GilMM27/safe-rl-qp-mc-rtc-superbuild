@@ -28,9 +28,9 @@ example `SMPLH_MALE.pkl`) or its containing model directory. AMASS input must
 be an `.npz` sequence containing `poses` with 156 values per frame, `trans`,
 `betas`, `gender`, and `mocap_framerate`.
 
-If the licensed files are not yet available, create a synthetic fixture for
-native playback development. It is deliberately not a human surface and must
-not be used for distance research:
+If the licensed files are not yet available, create a synthetic fixture to test
+the complete scene, bridge, worker, and logging path. It is deliberately not a
+human surface and must not be used for distance research:
 
 ```sh
 python -m smplh_playback.make_smoke_fixture --output /tmp/smplh-smoke-cache
