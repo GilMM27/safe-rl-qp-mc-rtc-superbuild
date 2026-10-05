@@ -79,6 +79,7 @@ export SMPLH_SCENE=/tmp/kinova-smplh-scene.mjb
 ~/.venvs/smplh-playback/bin/python -m smplh_playback.serve \
   --cache /tmp/amass-cache --socket "$SMPLH_SOCKET" \
   --robot-prefix kinova_ --robot-group 2 --loop \
+  --distance-every 25 --log-every 25 \
   --log /tmp/kinova-smplh-distances.jsonl
 ```
 
