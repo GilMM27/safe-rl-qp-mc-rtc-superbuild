@@ -112,12 +112,13 @@ returns the free-root pose and all 51 ball-joint poses to MuJoCo. The human is
 kinematic: velocities are reset to zero and its display/debug geoms have no
 contact bits.
 
-Robot-to-surface distances are updated every physics step. The articulated
-pose, mesh vertices, and normals are transferred only when the AMASS frame
-changes; normals are computed once for that frame. This avoids repeatedly
-transferring the full mesh at simulation rates above the mocap FPS. Distance
-JSONL is sampled every ten physics steps by default; set `--log-every 1` to log
-every step.
+The exact robot-to-surface query is computationally expensive. By default it
+runs every 25 physics steps (20 Hz with the usual 2 ms MuJoCo timestep), while
+the articulated pose still follows simulation time and mesh vertices/normals
+are transferred only when the AMASS frame changes. The JSONL log records each
+distance sample by default. Use `--distance-every 1` for a fresh exact query at
+every physics step, with substantially slower simulation; increase the value
+to favor playback speed. `--log-every` can further reduce log writes.
 
 Regions are assigned by the largest average SMPL-H linear-blend-skinning
 influence over each triangle. The defaults provide head, torso, upper arm,

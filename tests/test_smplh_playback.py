@@ -115,7 +115,8 @@ class PipelineTests(unittest.TestCase):
         socket_path=self.cache/'worker.sock'; log=self.cache/'results.jsonl'
         proc=subprocess.Popen([sys.executable,'-m','smplh_playback.serve',
             '--cache',str(self.cache),'--socket',str(socket_path),
-            '--robot-prefix','Kinova_','--log',str(log),'--log-every','1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            '--robot-prefix','Kinova_','--log',str(log),'--distance-every','2',
+            '--log-every','1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         try:
             import time
             for _ in range(100):
@@ -150,7 +151,7 @@ class PipelineTests(unittest.TestCase):
                 self.assertFalse(np.allclose(first[:3],next_frame[:3]))
                 np.testing.assert_allclose(first[211:211+3*nvert].reshape(-1,3),self.playback.vertices[0])
             records=[json.loads(line) for line in log.read_text().splitlines()]
-            self.assertEqual([r['frame'] for r in records],[0,0,1,0])
+            self.assertEqual([r['frame'] for r in records],[0,1])
             for record in records:
                 self.assertEqual(len(record['regions']),14)
                 self.assertGreater(record['regions']['head']['distance'],0)

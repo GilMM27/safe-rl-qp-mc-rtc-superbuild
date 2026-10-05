@@ -25,8 +25,13 @@ def main():
     p.add_argument('--robot-prefix',required=True,help='Compiled Kinova body name prefix')
     p.add_argument('--robot-group',type=int,default=2,help='2: Menagerie visual surface; 3: collision geometry comparison')
     p.add_argument('--loop',action='store_true'); p.add_argument('--log',required=True)
-    p.add_argument('--log-every',type=int,default=10,help='Write one distance record every N physics steps (default: 10)')
+    p.add_argument('--distance-every',type=int,default=25,
+                   help='Recompute exact mesh distances every N physics steps (default: 25)')
+    p.add_argument('--log-every',type=int,default=None,
+                   help='Write a distance record every N physics steps (default: same as --distance-every)')
     args=p.parse_args()
+    if args.distance_every < 1: p.error('--distance-every must be positive')
+    if args.log_every is None: args.log_every=args.distance_every
     if args.log_every < 1: p.error('--log-every must be positive')
     playback=Playback(args.cache,args.loop); distance=SurfaceDistance(playback)
     path=Path(args.socket)
@@ -42,22 +47,24 @@ def main():
             model=mujoco.MjModel.from_binary_path(receive(conn,size).decode())
             robots,ids=robot_geometry(model,args.robot_prefix,args.robot_group)
             conn.sendall(struct.pack('=II',model.ngeom,len(playback.vertices[0])))
-            last_sent_frame=None; step=0; cached_payload=None
+            last_sent_frame=None; step=0
             while True:
                 try: time=struct.unpack('=d',receive(conn,8))[0]
                 except EOFError: break
                 transforms=np.frombuffer(receive(conn,model.ngeom*12*8),dtype=np.float64).reshape(-1,12)
-                index=playback.frame(time); distance.update(index)
-                for i in ids:
-                    robots[str(i)].setTransform(fcl.Transform(transforms[i,3:].reshape(3,3),transforms[i,:3]))
-                results=distance.query(robots)
-                if step % args.log_every == 0:
-                    record=dict(time=time,frame=index,regions=results)
-                    log.write(json.dumps(record,allow_nan=False)+'\n'); log.flush()
+                index=playback.frame(time)
+                if step % args.distance_every == 0:
+                    distance.update(index)
+                    for i in ids:
+                        robots[str(i)].setTransform(fcl.Transform(transforms[i,3:].reshape(3,3),transforms[i,:3]))
+                    results=distance.query(robots)
+                    if step % args.log_every == 0:
+                        record=dict(time=time,frame=index,regions=results)
+                        log.write(json.dumps(record,allow_nan=False)+'\n'); log.flush()
                 step+=1
                 try:
-                    # The robot transforms and distances are processed every simulator
-                    # tick, while the articulated pose and mesh change only per AMASS frame.
+                    # Playback pose is synchronized every simulator tick; full mesh
+                    # payload is sent only when the AMASS frame changes.
                     conn.sendall(struct.pack('=I',index))
                     if index != last_sent_frame:
                         v=np.asarray(playback.vertices[index],dtype=np.float32)
