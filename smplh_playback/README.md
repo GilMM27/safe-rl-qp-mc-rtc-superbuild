@@ -70,7 +70,7 @@ objects:
 ```
 
 Copy `/tmp/amass-cache/smplh.yaml` to the same configuration directory as
-`smplh.yaml`. Start the worker before `mc_mujoco`:
+`smplh.yaml`. Start the worker in one terminal:
 
 ```sh
 export PYTHONPATH=$PWD
@@ -80,7 +80,15 @@ export SMPLH_SCENE=/tmp/kinova-smplh-scene.mjb
   --cache /tmp/amass-cache --socket "$SMPLH_SOCKET" \
   --robot-prefix kinova_ --robot-group 2 --loop \
   --log /tmp/kinova-smplh-distances.jsonl
+```
 
+In a second terminal, export the **same bridge paths** before starting
+`mc_mujoco`. The simulator process must inherit these variables to connect to
+the worker and drive the human away from the initial pose:
+
+```sh
+export SMPLH_SOCKET=/tmp/smplh-mujoco.sock
+export SMPLH_SCENE=/tmp/kinova-smplh-scene.mjb
 mc_mujoco --sync
 ```
 
