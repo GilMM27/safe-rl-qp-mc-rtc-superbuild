@@ -15,6 +15,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(mujoco_menagerie)
 
+# Select the table environment only when Kinova is the main robot.
+configure_file(
+  "${CMAKE_CURRENT_LIST_DIR}/kinova_ground.in.yaml"
+  "${CMAKE_CURRENT_BINARY_DIR}/ground.yaml"
+  @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ground.yaml"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/share/mc_mujoco")
+install(FILES "${CMAKE_CURRENT_LIST_DIR}/kinova_table.xml"
+  DESTINATION "${KINOVA_MJ_DESCRIPTION_DESTINATION}")
+
 configure_file(
   "${CMAKE_CURRENT_LIST_DIR}/kinova_mj_description.in.yaml"
   "${CMAKE_CURRENT_BINARY_DIR}/kinova.yaml"

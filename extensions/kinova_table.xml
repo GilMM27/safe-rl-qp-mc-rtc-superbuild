@@ -1,0 +1,27 @@
+<mujoco model="kinova table environment">
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+  </visual>
+  <asset>
+    <!-- Reuse mc_mujoco's bundled table mesh (path relative to kinova_gen3). -->
+    <mesh name="table" file="../object/assets/table.stl"/>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture name="floor_texture" type="2d" builtin="checker" rgb1="0.2 0.3 0.4"
+      rgb2="0.1 0.15 0.2" width="512" height="512"/>
+    <material name="floor_material" texture="floor_texture" texrepeat="1 1" texuniform="true"/>
+  </asset>
+  <worldbody>
+    <light pos="0 0 2" dir="0 0 -1" directional="true"/>
+    <!-- Keep the controller's base frame at z=0, on the tabletop. -->
+    <body name="base_link">
+      <geom name="floor" type="plane" pos="0 0 -0.713603" size="0 0 0.05"
+        material="floor_material" condim="3" group="1"/>
+      <!-- Center the existing mesh in x/y and put its upper surface at z=0. -->
+      <geom name="table_visual" type="mesh" mesh="table" pos="-0.0078965 -0.188239 -0.713477"
+        contype="0" conaffinity="0" group="1" rgba="0.55 0.36 0.20 1"/>
+      <geom name="table_collision" type="mesh" mesh="table" pos="-0.0078965 -0.188239 -0.713477"
+        group="3" friction="0.8 0.005 0.0001"/>
+    </body>
+  </worldbody>
+</mujoco>
