@@ -120,6 +120,14 @@ have zero clearance and no reliable closest points or separation direction.
 The Python worker remains as a reference implementation for tests; install
 `requirements-test.txt` only when running that reference suite.
 
+With `KinovaHoldController`, the mc_rtc GUI shows per-region distances and
+closest robot geometry under **SMPL-H distances**. The **SMPL-H closest points**
+category draws an arrow from each human closest point to its matching Kinova
+point when those points are defined. Distances are also recorded in the mc_rtc
+log as `SMPLH_distance_<region>` in meters (for example,
+`SMPLH_distance_left_hand`) and can be plotted in mc_rtc log tools. The initial
+value is unavailable until the first asynchronous distance sample completes.
+
 The SMPL-H surface is a reconstructed body estimate, with clothing, soft tissue,
 and model-fitting errors absent. Treat its distances as a research measurement,
 then validate any ISO/TS 15066 region policy and margins for the intended
