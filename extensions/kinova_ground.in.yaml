@@ -1,0 +1,5 @@
+xmlModelPath: "@CMAKE_INSTALL_PREFIX@/share/mc_mujoco/env/ground.xml"
+Kinova:
+  xmlModelPath: "@KINOVA_MJ_DESCRIPTION_DESTINATION@/kinova_table.xml"
+kinova:
+  xmlModelPath: "@KINOVA_MJ_DESCRIPTION_DESTINATION@/kinova_table.xml"
