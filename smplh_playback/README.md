@@ -131,7 +131,14 @@ The Python worker remains as a reference implementation for tests; install
 The MuJoCo viewer draws a green arrow between each region's closest human and
 Kinova points, with cyan and orange endpoint markers. These markers are only
 available when a non-intersecting distance sample has valid closest points.
-The MuJoCo status panel reports the latest sample age and FCL query duration.
+The MuJoCo status panel reports the latest sample age, FCL query duration, and
+`pairs queried/total`. Exact queries are ordered by current-pose bounding-box
+distance; pairs that cannot improve the regional minimum are skipped. A low
+queried/total ratio indicates effective pruning, not simplified geometry.
+The `prep`, `collide`, and `distance` timings split worker geometry preparation
+from time spent inside FCL collision and distance calls. The total query time
+also includes candidate sorting and result processing. Regional BVHs contain
+only referenced vertices; triangle surfaces are unchanged.
 At a 1 ms timestep, the default `SMPLH_DISTANCE_EVERY=25` requests a sample
 every 25 ms; lower this value (for example, `SMPLH_DISTANCE_EVERY=5`) when the
 query duration is comfortably below the interval. If query duration exceeds the
