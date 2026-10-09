@@ -28,9 +28,9 @@ example `SMPLH_MALE.pkl`) or its containing model directory. AMASS input must
 be an `.npz` sequence containing `poses` with 156 values per frame, `trans`,
 `betas`, `gender`, and `mocap_framerate`.
 
-If the licensed files are not yet available, create a synthetic fixture for
-native playback development. It is deliberately not a human surface and must
-not be used for distance research:
+If the licensed files are not yet available, create a synthetic fixture to test
+the complete scene, bridge, worker, and logging path. It is deliberately not a
+human surface and must not be used for distance research:
 
 ```sh
 python -m smplh_playback.make_smoke_fixture --output /tmp/smplh-smoke-cache
@@ -107,6 +107,14 @@ controller run. Results include readiness, sequence, motion frame, simulation
 sample time, and per-region closest points, direction, normal validity,
 intersection, distance, and closest robot geometry.
 
+The exact robot-to-surface query is computationally expensive. By default it
+runs every 25 physics steps (20 Hz with the usual 2 ms MuJoCo timestep), while
+the articulated pose still follows simulation time and mesh vertices/normals
+are transferred only when the AMASS frame changes. The JSONL log records each
+distance sample by default. Use `--distance-every 1` for a fresh exact query at
+every physics step, with substantially slower simulation; increase the value
+to favor playback speed. `--log-every` can further reduce log writes.
+
 Regions are assigned by the largest average SMPL-H linear-blend-skinning
 influence over each triangle. The defaults provide head, torso, upper arm,
 forearm, hand, thigh, lower leg, and foot on both sides. `regions.npz` stores
@@ -123,7 +131,17 @@ The Python worker remains as a reference implementation for tests; install
 The MuJoCo viewer draws a green arrow between each region's closest human and
 Kinova points, with cyan and orange endpoint markers. These markers are only
 available when a non-intersecting distance sample has valid closest points.
-The MuJoCo status panel reports the latest sample age and FCL query duration.
+The MuJoCo status panel reports the latest sample age, FCL query duration, and
+`pairs queried/total`. Exact queries are ordered by current-pose bounding-box
+distance; pairs that cannot improve the regional minimum are skipped. A low
+queried/total ratio indicates effective pruning, not simplified geometry.
+The `prep`, `collide`, and `distance` timings split worker geometry preparation
+from time spent inside FCL collision and distance calls. The total query time
+also includes candidate sorting and result processing. Regional BVHs contain
+only referenced vertices; triangle surfaces are unchanged.
+Current-pose BVHs use top-down refitting, fitting each node from its referenced
+primitives. Bottom-up OBBRSS refitting in the tested FCL 0.7.0 installation
+disagreed with fresh builds on deforming real meshes and is not used.
 At a 1 ms timestep, the default `SMPLH_DISTANCE_EVERY=25` requests a sample
 every 25 ms; lower this value (for example, `SMPLH_DISTANCE_EVERY=5`) when the
 query duration is comfortably below the interval. If query duration exceeds the
