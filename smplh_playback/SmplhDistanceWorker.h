@@ -113,7 +113,10 @@ class SmplhDistanceWorker
           auto & model=*humanModels_[i];
           model.beginReplaceModel();
           model.replaceSubModel(region.vertices);
-          model.endReplaceModel(/* refit = */ true, /* bottomup = */ true);
+          // Fit each node directly from its current primitives. FCL 0.7.0's
+          // bottom-up OBBRSS merging disagreed with fresh BVHs on deforming
+          // meshes and caused seconds-long distance traversals in replay tests.
+          model.endReplaceModel(/* refit = */ true, /* bottomup = */ false);
         }
       }
       humanModelFrame_=input.frame;

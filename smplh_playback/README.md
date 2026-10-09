@@ -139,6 +139,9 @@ The `prep`, `collide`, and `distance` timings split worker geometry preparation
 from time spent inside FCL collision and distance calls. The total query time
 also includes candidate sorting and result processing. Regional BVHs contain
 only referenced vertices; triangle surfaces are unchanged.
+Current-pose BVHs use top-down refitting, fitting each node from its referenced
+primitives. Bottom-up OBBRSS refitting in the tested FCL 0.7.0 installation
+disagreed with fresh builds on deforming real meshes and is not used.
 At a 1 ms timestep, the default `SMPLH_DISTANCE_EVERY=25` requests a sample
 every 25 ms; lower this value (for example, `SMPLH_DISTANCE_EVERY=5`) when the
 query duration is comfortably below the interval. If query duration exceeds the
