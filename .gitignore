@@ -3,3 +3,5 @@ devel/
 install/
 **/.devpod-internal
 .ccache/
+__pycache__/
+*.pyc

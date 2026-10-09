@@ -20,9 +20,16 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/kinova.yaml"
   @ONLY
 )
+configure_file(
+  "${CMAKE_CURRENT_LIST_DIR}/kinova_mj_description.in.yaml"
+  "${CMAKE_CURRENT_BINARY_DIR}/Kinova.yaml"
+  @ONLY
+)
 
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/kinova.yaml"
+  FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/kinova.yaml"
+    "${CMAKE_CURRENT_BINARY_DIR}/Kinova.yaml"
   DESTINATION "${CMAKE_INSTALL_PREFIX}/share/mc_mujoco"
 )
 

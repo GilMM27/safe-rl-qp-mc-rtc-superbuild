@@ -21,9 +21,23 @@ endif()
 
 AptInstall(libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libglew-dev)
 
+option(WITH_SMPLH_PLAYBACK "Enable native SMPL-H cache playback in mc_mujoco (Linux)" OFF)
+set(SMPLH_PATCH_ARGS)
+if(WITH_SMPLH_PLAYBACK)
+  if(NOT UNIX OR APPLE)
+    message(FATAL_ERROR "The native SMPL-H bridge currently requires Linux")
+  endif()
+  set(SMPLH_PATCH_ARGS PATCH_COMMAND
+    "${CMAKE_COMMAND}"
+    "-DSOURCE_DIR=${SOURCE_DESTINATION}/mc_mujoco"
+    "-DBRIDGE_SCRIPT=${CMAKE_CURRENT_LIST_DIR}/../smplh_playback/install_bridge.py"
+    -P "${CMAKE_CURRENT_LIST_DIR}/../cmake/scripts/apply-smplh-bridge.cmake")
+endif()
+
 AddProject(mc_mujoco
   GITHUB bastien-muraccioli/mc_mujoco
   GIT_TAG origin/main
   CMAKE_ARGS -DMUJOCO_ROOT_DIR=${MUJOCO_ROOT_DIR}
   DEPENDS mc_rtc
+  ${SMPLH_PATCH_ARGS}
 )

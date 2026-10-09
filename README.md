@@ -26,6 +26,7 @@ Part of the Acc-CBF-QP ecosystem: [paper implementation](https://github.com/safe
   - [Config superbuild (adding robots and options)](#config-superbuild-adding-robots-and-options)
   - [Bashrc](#bashrc)
 - [Running a controller](#running-a-controller)
+- [SMPL-H / AMASS human playback](#smpl-h--amass-human-playback)
 - [Adding your own RL-QP controller](#adding-your-own-rl-qp-controller)
   - [Fork the template](#fork-the-template)
   - [Add your controller to the superbuild](#add-your-controller-to-the-superbuild)
@@ -227,6 +228,17 @@ LogPolicy: threaded
 
 The controller is intentionally limited to the seven base Kinova joints. It is a
 smoke-test controller, not a manipulation controller.
+
+## SMPL-H / AMASS human playback
+
+An optional AMASS + SMPL-H pipeline drives a kinematic articulated human in
+the same MuJoCo scene as Kinova and measures each body region against the
+reconstructed SMPL-H triangle surface. The human surface and the MuJoCo
+collision/debug geoms are separate, so a later experiment can compare mesh
+surface distances with simplified collision elements. See
+[the playback guide](smplh_playback/README.md) for model/data setup, build
+option, coordinate alignment, launch commands, region definitions, distance
+records, and limitations.
 
 ## Adding your own RL-QP controller
 
