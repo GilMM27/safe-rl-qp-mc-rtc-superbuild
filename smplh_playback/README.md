@@ -120,11 +120,13 @@ have zero clearance and no reliable closest points or separation direction.
 The Python worker remains as a reference implementation for tests; install
 `requirements-test.txt` only when running that reference suite.
 
-With `KinovaHoldController`, the mc_rtc GUI shows per-region distances and
-closest robot geometry under **SMPL-H distances**. The **SMPL-H closest points**
-category draws an arrow from each human closest point to its matching Kinova
-point when those points are defined. Distances are also recorded in the mc_rtc
-log as `SMPLH_distance_<region>` in meters (for example,
+The MuJoCo viewer draws a green arrow between each region's closest human and
+Kinova points, with cyan and orange endpoint markers. These markers are only
+available when a non-intersecting distance sample has valid closest points.
+With `KinovaHoldController`, the separate mc_rtc GUI also shows per-region
+distances and closest robot geometry under **SMPL-H distances**, and draws the
+closest-point arrows under **SMPL-H closest points**. Distances are recorded in
+the mc_rtc log as `SMPLH_distance_<region>` in meters (for example,
 `SMPLH_distance_left_hand`) and can be plotted in mc_rtc log tools. The initial
 value is unavailable until the first asynchronous distance sample completes.
 

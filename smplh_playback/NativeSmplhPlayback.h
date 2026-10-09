@@ -160,6 +160,41 @@ public:
       distanceWorker_.submit(++sequence_, next, d->time, v, vertexCount_, d, m);
   }
   mc_mujoco::SmplhDistanceSnapshot snapshot() const { return distanceWorker_.latest(); }
+  void renderDistanceOverlay(mjvScene * scene) const
+  {
+    if(!distanceEnabled_ || !scene) return;
+    const auto distances = distanceWorker_.latest();
+    if(!distances.ready) return;
+    const mjtNum geomSize[3] = {0.012, 0.024, 0.03};
+    const mjtNum identity[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
+    const mjtNum origin[3] = {0, 0, 0};
+    const float humanColor[4] = {0.1f, 0.9f, 1.0f, 1.0f};
+    const float robotColor[4] = {1.0f, 0.55f, 0.1f, 1.0f};
+    const float arrowColor[4] = {0.25f, 1.0f, 0.35f, 1.0f};
+    for(const auto & region : distances.regions)
+    {
+      if(!region.closest_points_valid || scene->ngeom + 3 > scene->maxgeom) continue;
+      mjtNum human[3], robot[3];
+      for(int axis = 0; axis < 3; ++axis)
+      {
+        human[axis] = region.human_point[axis];
+        robot[axis] = region.robot_point[axis];
+      }
+      const int humanId = scene->ngeom++;
+      mjv_initGeom(&scene->geoms[humanId], mjGEOM_SPHERE, geomSize, human, identity, humanColor);
+      scene->geoms[humanId].category = mjCAT_DECOR;
+      scene->geomorder[humanId] = humanId;
+      const int robotId = scene->ngeom++;
+      mjv_initGeom(&scene->geoms[robotId], mjGEOM_SPHERE, geomSize, robot, identity, robotColor);
+      scene->geoms[robotId].category = mjCAT_DECOR;
+      scene->geomorder[robotId] = robotId;
+      const int arrowId = scene->ngeom++;
+      mjv_initGeom(&scene->geoms[arrowId], mjGEOM_ARROW, geomSize, origin, identity, arrowColor);
+      mjv_connector(&scene->geoms[arrowId], mjGEOM_ARROW, 0.006, human, robot);
+      scene->geoms[arrowId].category = mjCAT_DECOR;
+      scene->geomorder[arrowId] = arrowId;
+    }
+  }
   void upload(const mjModel * m, mjrContext * context)
   {
     if(dirty_) { mjr_uploadMesh(m, context, mesh_); dirty_=false; }

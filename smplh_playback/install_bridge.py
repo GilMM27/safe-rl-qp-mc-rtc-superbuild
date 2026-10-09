@@ -13,6 +13,10 @@ def install(source):
     if 'smplh_bridge_.update' in c:
         if 'SmplhBridge smplh_bridge_' not in h: raise RuntimeError('Incomplete bridge patch')
         shutil.copyfile(here/'NativeSmplhPlayback.h',source/'src/SmplhBridge.h')
+        if 'smplh_bridge_.renderDistanceOverlay' not in c:
+            c=c.replace('  mjv_updateScene(model, data, &options, &pert, &camera, mjCAT_ALL, &scene);',
+                        '  mjv_updateScene(model, data, &options, &pert, &camera, mjCAT_ALL, &scene);\n'
+                        '  smplh_bridge_.renderDistanceOverlay(&scene);')
         if 'smplh_store.assign<mc_mujoco::SmplhDistanceSnapshot>' not in c:
             c=c.replace('    if(!controller->run())',
                         '    auto & smplh_store = controller->controller().datastore();\n'
@@ -25,6 +29,7 @@ def install(source):
                         '      smplh_paused_store.assign<mc_mujoco::SmplhDistanceSnapshot>("SMPLH::DistanceSnapshot", smplh_bridge_.snapshot());\n'
                         '      controller->run();')
             cpp.write_text(c)
+        cpp.write_text(c)
         cmake=source/'src/CMakeLists.txt'; text=cmake.read_text()
         text=text.replace('install(FILES mj_sim.h mj_configuration.h DESTINATION include/mc_mujoco)',
                           'install(FILES mj_sim.h mj_configuration.h SmplhDistanceSnapshot.h DESTINATION include/mc_mujoco)')
@@ -46,7 +51,8 @@ def install(source):
 #else
   smplh_bridge_.upload(model, &context);
 #endif
-  mjv_updateScene(model, data, &options, &pert, &camera, mjCAT_ALL, &scene);''')]
+  mjv_updateScene(model, data, &options, &pert, &camera, mjCAT_ALL, &scene);
+  smplh_bridge_.renderDistanceOverlay(&scene);''')]
     for before,after in replacements:
         if c.count(before)!=1: raise RuntimeError(f'Unsupported mc_mujoco source: {before}')
         c=c.replace(before,after)
