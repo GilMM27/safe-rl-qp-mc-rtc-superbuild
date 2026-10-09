@@ -17,6 +17,16 @@ def install(source):
             c=c.replace('  mjv_updateScene(model, data, &options, &pert, &camera, mjCAT_ALL, &scene);',
                         '  mjv_updateScene(model, data, &options, &pert, &camera, mjCAT_ALL, &scene);\n'
                         '  smplh_bridge_.renderDistanceOverlay(&scene);')
+        if 'SMPL-H distance sample:' not in c:
+            c=c.replace('    ImGui::Text("Wallclock time: %.2fs", wallclock);',
+                        '    ImGui::Text("Wallclock time: %.2fs", wallclock);\n'
+                        '    const auto smplh_distance = smplh_bridge_.snapshot();\n'
+                        '    if(smplh_distance.ready)\n'
+                        '      ImGui::Text("SMPL-H sample %llu | age %.1f ms | query %.1f ms",\n'
+                        '                   static_cast<unsigned long long>(smplh_distance.sequence),\n'
+                        '                   1000.0 * (data->time - smplh_distance.sample_simulation_time),\n'
+                        '                   1000.0 * smplh_distance.worker_duration_seconds);\n'
+                        '    else ImGui::Text("SMPL-H distance sample: waiting");')
         if 'smplh_store.assign<mc_mujoco::SmplhDistanceSnapshot>' not in c:
             c=c.replace('    if(!controller->run())',
                         '    auto & smplh_store = controller->controller().datastore();\n'
@@ -56,6 +66,15 @@ def install(source):
     for before,after in replacements:
         if c.count(before)!=1: raise RuntimeError(f'Unsupported mc_mujoco source: {before}')
         c=c.replace(before,after)
+    c=c.replace('    ImGui::Text("Wallclock time: %.2fs", wallclock);',
+                '    ImGui::Text("Wallclock time: %.2fs", wallclock);\n'
+                '    const auto smplh_distance = smplh_bridge_.snapshot();\n'
+                '    if(smplh_distance.ready)\n'
+                '      ImGui::Text("SMPL-H sample %llu | age %.1f ms | query %.1f ms",\n'
+                '                   static_cast<unsigned long long>(smplh_distance.sequence),\n'
+                '                   1000.0 * (data->time - smplh_distance.sample_simulation_time),\n'
+                '                   1000.0 * smplh_distance.worker_duration_seconds);\n'
+                '    else ImGui::Text("SMPL-H distance sample: waiting");')
     c=c.replace('    if(!controller->run())',
                 '    auto & smplh_store = controller->controller().datastore();\n'
                 '    if(!smplh_store.has("SMPLH::DistanceSnapshot")) smplh_store.make<mc_mujoco::SmplhDistanceSnapshot>("SMPLH::DistanceSnapshot");\n'

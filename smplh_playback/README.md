@@ -123,6 +123,11 @@ The Python worker remains as a reference implementation for tests; install
 The MuJoCo viewer draws a green arrow between each region's closest human and
 Kinova points, with cyan and orange endpoint markers. These markers are only
 available when a non-intersecting distance sample has valid closest points.
+The MuJoCo status panel reports the latest sample age and FCL query duration.
+At a 1 ms timestep, the default `SMPLH_DISTANCE_EVERY=25` requests a sample
+every 25 ms; lower this value (for example, `SMPLH_DISTANCE_EVERY=5`) when the
+query duration is comfortably below the interval. If query duration exceeds the
+interval, the worker is the refresh-rate limit.
 With `KinovaHoldController`, the separate mc_rtc GUI also shows per-region
 distances and closest robot geometry under **SMPL-H distances**, and draws the
 closest-point arrows under **SMPL-H closest points**. Distances are recorded in

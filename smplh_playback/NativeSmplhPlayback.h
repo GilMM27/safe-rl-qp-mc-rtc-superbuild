@@ -22,7 +22,7 @@ class SmplhBridge
 #pragma pack(push, 1)
   struct Header { char magic[8]; uint32_t frames, vertices, faces, regions, nq; double fps; };
 #pragma pack(pop)
-  int fd_ = -1, mesh_ = -1;
+  int fd_ = -1, mesh_ = -1, surfaceGeom_ = -1;
   void * mapping_ = MAP_FAILED;
   size_t bytes_ = 0;
   const float * qpos_ = nullptr;
@@ -95,6 +95,7 @@ class SmplhBridge
     const char * every = std::getenv("SMPLH_DISTANCE_EVERY");
     if(every) distanceEvery_ = std::max(1, std::atoi(every));
     int geom = find(m, mjOBJ_GEOM, "smplh_surface");
+    surfaceGeom_ = geom;
     mesh_ = m->geom_dataid[geom];
     if(mesh_ < 0 || static_cast<uint32_t>(m->mesh_vertnum[mesh_]) != vertexCount_
        || static_cast<uint32_t>(m->mesh_normalnum[mesh_]) != vertexCount_)
@@ -157,7 +158,7 @@ public:
     mj_forward(m,d); frame_=next; dirty_=true;
     }
     if(distanceEnabled_ && (++steps_ % distanceEvery_ == 0 || sequence_ == 0))
-      distanceWorker_.submit(++sequence_, next, d->time, v, vertexCount_, d, m);
+      distanceWorker_.submit(++sequence_, next, d->time, v, vertexCount_, d, m, surfaceGeom_);
   }
   mc_mujoco::SmplhDistanceSnapshot snapshot() const { return distanceWorker_.latest(); }
   void renderDistanceOverlay(mjvScene * scene) const
